@@ -1,59 +1,48 @@
-MOCK_MODE = True
+import RPi.GPIO as GPIO
+import time
 
-try:
-    if not MOCK_MODE:
-        from gpiozero import Motor
-    else:
-        Motor = None
-except Exception:
-    Motor = None
-    MOCK_MODE = True
+IN1 = 17
+IN2 = 27
+IN3 = 22
+IN4 = 23
 
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-class MotorController:
-    def __init__(self, left_forward=17, left_backward=18, right_forward=22, right_backward=23):
-        self.mock = MOCK_MODE or Motor is None
-        self.left_motor = None
-        self.right_motor = None
+GPIO.setup(IN1, GPIO.OUT)
+GPIO.setup(IN2, GPIO.OUT)
+GPIO.setup(IN3, GPIO.OUT)
+GPIO.setup(IN4, GPIO.OUT)
 
-        if not self.mock:
-            self.left_motor = Motor(forward=left_forward, backward=left_backward)
-            self.right_motor = Motor(forward=right_forward, backward=right_backward)
+def stop():
+    GPIO.output(IN1, 0)
+    GPIO.output(IN2, 0)
+    GPIO.output(IN3, 0)
+    GPIO.output(IN4, 0)
 
-    def _log(self, action: str):
-        print(f"[MOTOR] {action}")
+def forward_left():
+    GPIO.output(IN1, 1)
+    GPIO.output(IN2, 0)
+    GPIO.output(IN3, 0)
+    GPIO.output(IN4, 0)
 
-    def forward(self):
-        if self.mock:
-            self._log("forward")
-            return
-        self.left_motor.forward()
-        self.right_motor.forward()
+def forward_right():
+    GPIO.output(IN1, 0)
+    GPIO.output(IN2, 0)
+    GPIO.output(IN3, 0)
+    GPIO.output(IN4, 1)
 
-    def backward(self):
-        if self.mock:
-            self._log("backward")
-            return
-        self.left_motor.backward()
-        self.right_motor.backward()
+def forward_alternate(duration=2):
+    end_time = time.time() + duration
 
-    def left(self):
-        if self.mock:
-            self._log("left")
-            return
-        self.left_motor.backward()
-        self.right_motor.forward()
+    while time.time() < end_time:
+        forward_left()
+        time.sleep(0.2)
 
-    def right(self):
-        if self.mock:
-            self._log("right")
-            return
-        self.left_motor.forward()
-        self.right_motor.backward()
+        forward_right()
+        time.sleep(0.2)
 
-    def stop(self):
-        if self.mock:
-            self._log("stop")
-            return
-        self.left_motor.stop()
-        self.right_motor.stop()
+    stop()
+
+def cleanup():
+    GPIO.cleanup()

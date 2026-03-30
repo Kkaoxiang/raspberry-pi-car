@@ -1,5 +1,6 @@
-opencv-python
-SpeechRecognition
-pyttsx3
+speechrecognition
 requests
-gpiozero
+flask
+openai
+pyttsx3
+RPi.GPIO
