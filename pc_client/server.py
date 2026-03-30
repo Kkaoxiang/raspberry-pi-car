@@ -1,9 +1,19 @@
 from flask import Flask, request, jsonify
 from openai import OpenAI
+import pyttsx3
+import threading
 
 app = Flask(__name__)
+client = OpenAI()
 
-client = OpenAI(api_key="OpenAI-api-key")
+def speak_text(text):
+    try:
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+        engine.stop()
+    except Exception as e:
+        print("语音播放错误:", e)
 
 @app.route("/message", methods=["POST"])
 def handle_message():
@@ -22,6 +32,8 @@ def handle_message():
 
     reply = response.choices[0].message.content
     print("回复:", reply)
+
+    threading.Thread(target=speak_text, args=(reply,), daemon=True).start()
 
     return jsonify({"reply": reply})
 
